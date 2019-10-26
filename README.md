@@ -2,8 +2,8 @@
 
 ## References
 
-[Hide and Seek] (https://arxiv.org/pdf/1909.07528.pdf)
-[Control a cart] (https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html)
+[Hide and Seek](https://arxiv.org/pdf/1909.07528.pdf)
+[Control a cart](https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html)
 [Overcoming catastrophic forgetting in neural networks](https://www.pnas.org/content/114/13/3521.abstract)
 [Youtube Playlist I got my inspiration from](https://www.youtube.com/watch?v=xukp4MMTTFI&list=PL58qjcU5nk8u4Ajat6ppWVBmS_BCN_T7-&index=1 "Youtube Playlist Inspiration")
 
