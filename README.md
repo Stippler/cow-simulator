@@ -3,6 +3,8 @@
 ## References
 For further reference look at the *references.bib* file.
 
+[Proximal Policy Optimization Algorithms](https://arxiv.org/abs/1707.06347)
+
 [Multi-agent actor-critic for mixed cooperative-competitive environments](https://arxiv.org/pdf/1706.02275.pdf)
 
 [Control a cart](https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html)
@@ -14,31 +16,40 @@ For further reference look at the *references.bib* file.
 [Youtube Playlist I got my inspiration from](https://www.youtube.com/watch?v=xukp4MMTTFI&list=PL58qjcU5nk8u4Ajat6ppWVBmS_BCN_T7-&index=1 "Youtube Playlist Inspiration")
 
 ## Topic
-The Topic is Reinforcement learning.
+This project includes different Reinforcement Learning strategies in a dynamic, multi-agent environment. <!-- TODO: define it more precisly-->
 
 ## Type
-The type of my project is a mixture of **Bring your own data** and **Bring your own method**. I want to create my own environment that has not yet been used in another project. Therefore I assume that I have to bring my own method as well, as I have not found an existing one that has the same sensors and actuators.
+The type of this project is **Bring your own data** for reinforcement learning projects, because it provides a new environment for reinforcement learning stratergies. Additionaly it includes basic neural networks for every actor and learning algorithms for them. It is also partly **Beat the classics** as it will be tested against generic path finding and rule based systems. 
 
 ## Summary
 ### Description
 
-As an applied deep learning project I want to build a simulation consisting of cows, gras and soil. The white background represents the soil, the brown circle represents the cow, the green circle represents the gras and the red lines represent the rays, each cow can send out to percept its environment.
+This project consists of a simulation that simulates a partially observable, multi-agent, stochastic, dynamic, continuous and unknown (no knowledge about laws of physics) environment.
+It is designed that way so deep learning has to be used to find solutions and no simple algorithm (e.g. progression planning) can be used.
 
-![figure1](environment.png)
+There are two different groups of actors that can interact consciously with the environment: cows and wolves. 
+Additionally there is another entity called gras. Each actor has a certain energy level. If the energy level of a cow or a wolve drops below zero, it dies. 
+Additionally cows and wolves have perceptors in order to obtain a partial observation of the environment.
 
-A cow consists of 5 elements:
+The following figure shows a visualisation of the actors, the green circle represents gras, the brown circle represents a cow and the blue circle represents a wolf. The little circles represent their perceptors.
 
-* A body, basically a brown circle.
-* An energy level, if its energy level reaches 0 the cow dies, if it reaches an energy level that is high enough it reproduces.
-* A perceptor, that sends out rays. In every update cycle that perceptor sends out it rays. If a ray collides with an object, it returns the color, if not white gets returned.
-* Actuators to control steering and speed.
-* An artificial Neural Network that gets the colors of the perceptor as input and uses the actuators to make actions.
+![figure1](actors.png)
 
-The purpose of the gras is to replenish the energy of the cow. When a cow collides with gras, the gras energy level decreases while the cows energy level goes up. The Neural Network is trained by Reinforcement learning, it gets a reward if the cow replenishes energy.
+If an actor wants to perceive its environment, its perceptor sends out rays with a limited reach. The rays return the color of the actor/perceptor they first intersect with or black if they do not intersect with another actor. The next figure shows a visualisation of the rays. The color of the rays show the value they return.
 
-The goal of the simulation is to implement a flexible environment for trying out different Reinforcement learning approaches. 
+![figure1](perceptor.png)
+
+Every entity has energy, if the energy drops below zero the entity vanishes. The cow gets energy by touching grass, the wolve by touching cows. Each entity looses energy by touching its counterpart. The goal of each actor is to obtain as much energy as possible.
 
 ### Dataset
-There is no real dataset. I have to implement the environmet and make it possible to searlize the actions the agents make in order to analyze their behaviour.
+There is no real dataset. The project implements the environmet and make it possible to searlize the actions the agents make in order to analyze their behaviour.
 
 ### Work-Breakdown structure
+
+
+
+
+
+
+
+
