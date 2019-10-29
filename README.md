@@ -38,10 +38,10 @@ If an actor wants to perceive its environment, its perceptor sends out rays with
 
 ![figure1](perceptor.png)
 
-Every entity has energy, if the energy drops below zero the entity vanishes. The cow gets energy by touching grass, the wolf by touching cows. Each entity looses energy by touching its counterpart or moving around. The goal of each actor is to obtain as much energy as possible. Grass gets more energy if it is left alone.
+Every entity has energy, if the energy drops below zero the entity vanishes. The cow gets energy by touching grass, the wolf by touching cows. Each entity loses energy by touching its counterpart or moving around. The goal of each actor is to obtain as much energy as possible. Grass gets more energy if it is left alone.
 
 ### Dataset
-There is no real dataset. The project implements the environment, gives an visualizes of the state of the world and implements rule based actors.
+There is no real dataset. The project implements the environment, gives an visualisation of the state of the world and implements rule based actors.
 
 ### Work-Breakdown structure
 
