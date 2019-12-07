@@ -18,6 +18,9 @@
 
 [Emergent Tool Use From Multi-Agent Autocurricula](https://arxiv.org/abs/1909.07528)
 
+[When Worlds Collide: Simulating Circle-Circle Collisions](https://gamedevelopment.tutsplus.com/tutorials/when-worlds-collide-simulating-circle-circle-collisions--gamedev-769)
+
+[Quick Tip: Use Quadtrees to Detect Likely Collisions in 2D Space](https://gamedevelopment.tutsplus.com/tutorials/quick-tip-use-quadtrees-to-detect-likely-collisions-in-2d-space--gamedev-374)
 
 ## Topic
 This project includes different Reinforcement Learning strategies in a dynamic, multi-agent environment. <!-- TODO: define it more precisly-->
