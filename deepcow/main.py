@@ -2,6 +2,7 @@ from deepcow.constant import *
 from deepcow.entity import Entity, Agent
 from deepcow.actions import *
 from pygame.math import Vector2
+import random
 import os
 import pygame
 
@@ -73,10 +74,12 @@ while running:
 
     gameDisplay.fill(GRAY)
 
-    cow.update_acceleration(delta, user_action)
+    # cow.perform_action(delta, user_action)
 
     for agent in agents:
-        agent.percept(entities, gameDisplay)
+        perceptions = agent.percept(entities, gameDisplay)
+        # TODO: make something meaningful
+        agent.perform_action(delta, Action(random.randint(0, 6)))
 
     for agent in agents:
         agent.update_position(delta)

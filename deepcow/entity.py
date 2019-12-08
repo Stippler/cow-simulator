@@ -185,7 +185,7 @@ class Agent(Entity):
             pos.y += down_distance
             vel.y *= -1
 
-    def update_acceleration(self, delta, action):
+    def perform_action(self, delta, action):
         if action != Action.NOTHING:
             acceleration_delta = self.acceleration * delta
             if action == Action.MOVE_FORWARD:
