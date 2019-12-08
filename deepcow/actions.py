@@ -1,15 +1,12 @@
 from enum import Enum
 
 
-class AccelerationAction(Enum):
+class Action(Enum):
     NOTHING = 0
-    FORWARD = 1
-    BACKWARD = 2
-    LEFT = 3
-    RIGHT = 4
+    MOVE_FORWARD = 1
+    MOVE_BACKWARD = 2
+    MOVE_LEFT = 3
+    MOVE_RIGHT = 4
+    ROTATE_CLOCKWISE = 5
+    ROTATE_COUNTER_CLOCK = 6
 
-
-class RotationAction(Enum):
-    NOTHING = 0
-    CLOCK = 1
-    COUNTER_CLOCK = 2
