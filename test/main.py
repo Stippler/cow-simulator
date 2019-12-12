@@ -1,28 +1,22 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
+import torch
+import torch.nn as nn
+from deepcow.environment import Environment
+from deepcow.actions import Action
+import random
+import pygame
+from deepcow.user_input import get_user_input
 
-# Install TensorFlow
+env = Environment()
+clock = pygame.time.Clock()
+running = True
+while running:
+    running, user_action = get_user_input()
+    cow_rewards, wolf_rewards, done = env.step(cow_actions=[user_action], wolf_actions=[Action(random.randint(0, 6))])
+    if done:
+        env.reset()
+        continue
+    env.perceive()
+    env.draw_environment(True, True)
+    clock.tick(60)
 
-import tensorflow as tf
-
-check = tf.test.is_gpu_available(cuda_only=False,min_cuda_compute_capability=None)
-print(check)
-
-# mnist = tf.keras.datasets.mnist
-#
-# (x_train, y_train), (x_test, y_test) = mnist.load_data()
-# x_train, x_test = x_train / 255.0, x_test / 255.0
-#
-# model = tf.keras.models.Sequential([
-#   tf.keras.layers.Flatten(input_shape=(28, 28)),
-#   tf.keras.layers.Dense(128, activation='relu'),
-#   tf.keras.layers.Dropout(0.2),
-#   tf.keras.layers.Dense(10, activation='softmax')
-# ])
-#
-# model.compile(optimizer='adam',
-#               loss='sparse_categorical_crossentropy',
-#               metrics=['accuracy'])
-#
-# model.fit(x_train, y_train, epochs=5)
-#
-# model.evaluate(x_test,  y_test, verbose=2)
+pygame.quit()

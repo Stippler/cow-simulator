@@ -1,30 +1,44 @@
 from deepcow.constant import *
 from deepcow.actions import *
-
 from pygame.math import Vector2
 from math import sqrt
 import pygame
 import numpy as np
 
+pygame.font.init()
 WHITE = (255, 255, 255)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 128)
+BLACK = (0, 0, 0)
 
 
 class Entity(object):
+    font = pygame.font.Font('freesansbold.ttf', 12)
+
     def __init__(self,
                  position,
                  radius=DEFAULT_RADIUS,
-                 initial_energy=DEFAULT_INITIAL_ENERGY,
+                 initial_energy=1,
                  color=(0, 0, 0)):
+        self.id = id
         self.position = position
         self.radius = radius
         self.energy = initial_energy
         self.color = color
+        self.reward = 0
 
     def draw(self, screen):
         x = int(self.position.x)
         y = int(self.position.y)
         radius = int(self.radius)
         pygame.draw.circle(screen, self.color, (x, y), radius)
+
+    def draw_energy_reward(self, screen, index):
+        text = self.font.render('Energy: {:.2f} Reward: {:.2f}'.format(self.energy, self.reward), True, self.color,
+                                WHITE)
+        text_rect = text.get_rect()
+        text_rect.move_ip(GAME_WIDTH - text_rect.width, index * text_rect.height)
+        screen.blit(text, text_rect)
 
 
 class Agent(Entity):
@@ -39,7 +53,7 @@ class Agent(Entity):
                  max_speed=DEFAULT_MAX_SPEED,
                  acceleration=DEFAULT_ACCELERATION,
                  radius=DEFAULT_RADIUS,
-                 initial_energy=DEFAULT_INITIAL_ENERGY,
+                 initial_energy=1,
                  mass=DEFAULT_MASS,
                  elasticity=DEFAULT_ELASTICITY,
                  color=(0, 0, 0)):
@@ -54,8 +68,12 @@ class Agent(Entity):
         self.velocity = velocity
         self.mass = mass
         self.elasticity = elasticity
+        self.perceptions = []
 
-    def percept(self, entities, screen=None):
+    def get_head_position(self):
+        return self.position + self.direction * self.radius
+
+    def perceive(self, entities, screen=None):
         stop_angle = self.field_of_view / 2
         start_angle = -stop_angle
         delta_angle = self.field_of_view / self.ray_count
@@ -88,7 +106,6 @@ class Agent(Entity):
                     elif 0 <= t2 <= 1:
                         # exit wound (e.g. cow eats grass, head center is inside of grass)
                         collisions.append((ray_direction_vec * t2, entity.color))
-
             collision_count = len(collisions)
             if collision_count >= 1:
                 perception = collisions[0]
@@ -110,14 +127,25 @@ class Agent(Entity):
                     perception = (ray_direction_vec, (0, 0, 0))
 
             perceptions.append(perception)
-            if screen is not None:
-                start_x = int(head_position.x)
-                start_y = int(head_position.y)
-                end_position = head_position + perception[0]
-                end_x = int(end_position.x)
-                end_y = int(end_position.y)
-                pygame.draw.line(screen, perception[1], (start_x, start_y), (end_x, end_y))
+
+        self.perceptions = perceptions
         return perceptions
+
+    def perform_action(self, delta, action):
+        if action != Action.NOTHING:
+            acceleration_delta = self.acceleration * delta
+            if action == Action.MOVE_FORWARD:
+                self.velocity += Vector2(0.0, -1.0) * acceleration_delta
+            elif action == Action.MOVE_BACKWARD:
+                self.velocity += Vector2(0.0, 1.0) * acceleration_delta
+            elif action == Action.MOVE_LEFT:
+                self.velocity += Vector2(-1.0, 0.0) * acceleration_delta
+            elif action == Action.MOVE_RIGHT:
+                self.velocity += Vector2(1.0, 0.0) * acceleration_delta
+            elif action == Action.ROTATE_CLOCKWISE:
+                self.direction = self.direction.rotate(self.rotation_speed * delta)
+            elif action == Action.ROTATE_COUNTER_CLOCK:
+                self.direction = self.direction.rotate(-self.rotation_speed * delta)
 
     def update_position(self, delta):
         speed = self.velocity.magnitude()
@@ -185,24 +213,37 @@ class Agent(Entity):
             pos.y += down_distance
             vel.y *= -1
 
-    def perform_action(self, delta, action):
-        if action != Action.NOTHING:
-            acceleration_delta = self.acceleration * delta
-            if action == Action.MOVE_FORWARD:
-                self.velocity += Vector2(0.0, -1.0) * acceleration_delta
-            elif action == Action.MOVE_BACKWARD:
-                self.velocity += Vector2(0.0, 1.0) * acceleration_delta
-            elif action == Action.MOVE_LEFT:
-                self.velocity += Vector2(-1.0, 0.0) * acceleration_delta
-            elif action == Action.MOVE_RIGHT:
-                self.velocity += Vector2(1.0, 0.0) * acceleration_delta
-            elif action == Action.ROTATE_CLOCKWISE:
-                self.direction = self.direction.rotate(self.rotation_speed * delta)
-            elif action == Action.ROTATE_COUNTER_CLOCK:
-                self.direction = self.direction.rotate(-self.rotation_speed * delta)
+    def intersects_head(self, entity):
+        head_position = self.get_head_position()
+        head_radius = self.radius / 2
+        total_radius = head_radius + entity.radius
+        return head_position.distance_squared_to(entity.position) < total_radius * total_radius
 
-    def get_head_position(self):
-        return self.position + self.direction * self.radius
+    def eat(self, foods, delta):
+        eat_count = 0
+        delta_reward = delta
+        for food in foods:
+            if self.intersects_head(food):
+                self.reward += delta_reward
+                self.energy += delta_reward
+                food.reward -= delta_reward
+                food.energy -= delta_reward
+                if food.energy <= 0:
+                    eat_count += 1
+        return self.reward, eat_count
+
+    def reset_reward(self):
+        self.reward = 0
+
+    def draw_perception(self, screen):
+        head_position = self.get_head_position()
+        for perception in self.perceptions:
+            start_x = int(head_position.x)
+            start_y = int(head_position.y)
+            end_position = head_position + perception[0]
+            end_x = int(end_position.x)
+            end_y = int(end_position.y)
+            pygame.draw.line(screen, perception[1], (start_x, start_y), (end_x, end_y))
 
     def draw(self, screen):
         super().draw(screen)
