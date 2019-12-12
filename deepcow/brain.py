@@ -17,7 +17,6 @@ from deepcow.environment import Environment
 from deepcow.constant import *
 from deepcow.actions import *
 
-
 device = torch.device("cpu")
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'))
 
@@ -68,7 +67,6 @@ TARGET_UPDATE = 10
 input_length = DEFAULT_RAY_COUNT
 output_length = len(Action)
 
-
 policy_net = DQN(input_length, output_length).to(device)
 target_net = DQN(input_length, output_length).to(device)
 target_net.load_state_dict(policy_net.state_dict())
@@ -87,9 +85,10 @@ def select_action(state):
     steps_done += 1
     if sample > eps_threshold:
         with torch.no_grad():
-            return policy_net(state).max(1)[1].view(1, 1)
+            output = policy_net(state)
+            return output.max(1)[1].view(1, 1)
     else:
-        return torch.tensor([[random.randrange(7)]])
+        return torch.tensor([[random.randrange(6)]])
 
 
 episode_durations = []
@@ -169,14 +168,14 @@ for i_episode in range(num_episodes):
     for t in count():
         # Select and perform an action
         action = select_action(torch.tensor(cow_states[0]))
-        reward, done = env.step([Action(action.item())], wolf_actions=[Action(random.randint(0, 6))])
-        reward = torch.tensor([reward], device=device)
+        cow_rewards, wolf_rewards, done = env.step([action.item()], wolf_actions=[Action(random.randint(0, 6))])
+        cow_rewards = torch.tensor([cow_rewards[0]], device=device)
 
         # Observe new state
         next_cow_states, next_wolf_states = env.perceive()
 
         # Store the transition in memory
-        memory.push(cow_states[0], action, next_cow_states[0], reward)
+        memory.push(cow_states[0], action, next_cow_states[0], cow_rewards)
 
         # Move to the next state
         cow_states, wolf_states = next_cow_states, next_wolf_states

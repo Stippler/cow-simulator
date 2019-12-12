@@ -68,12 +68,16 @@ class Environment(object):
             self.wolf_perceptions.append(wolf.perceive(entities=self.entities))
         cow_ray_colors = []
         for cow_perception in self.cow_perceptions:
+            temp = []
             for _, ray_color in cow_perception:
-                cow_ray_colors.append(ray_color)
+                temp.append(ray_color)
+            cow_ray_colors.append(temp)
         wolf_ray_colors = []
         for wolf_perception in self.wolf_perceptions:
+            temp = []
             for _, ray_color in wolf_perception:
-                wolf_ray_colors.append(ray_color)
+                temp.append(ray_color)
+            wolf_ray_colors.append(temp)
         return cow_ray_colors, wolf_ray_colors
 
     def step(self, cow_actions, wolf_actions):
