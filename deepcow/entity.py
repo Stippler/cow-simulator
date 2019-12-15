@@ -16,12 +16,10 @@ class Entity(object):
     font = pygame.font.Font('freesansbold.ttf', 12)
 
     def __init__(self,
-                 position,
                  radius=DEFAULT_RADIUS,
                  initial_energy=1,
                  color=(0, 0, 0)):
-        self.id = id
-        self.position = position
+        self.position = Vector2()
         self.radius = radius
         self.energy = initial_energy
         self.color = color
@@ -43,21 +41,19 @@ class Entity(object):
 
 class Agent(Entity):
     def __init__(self,
-                 position,
-                 velocity,
-                 field_of_view=DEFAULT_FIELD_OF_VIEW,
-                 ray_count=DEFAULT_RAY_COUNT,
-                 ray_length=DEFAULT_RAY_LENGTH,
+                 ray_count=20,
+                 field_of_view=100,
+                 ray_length=300,
                  direction=Vector2(1.0, 0.0),
-                 rotation_speed=DEFAULT_ROTATION_SPEED,
-                 max_speed=DEFAULT_MAX_SPEED,
-                 acceleration=DEFAULT_ACCELERATION,
-                 radius=DEFAULT_RADIUS,
-                 initial_energy=1,
-                 mass=DEFAULT_MASS,
-                 elasticity=DEFAULT_ELASTICITY,
+                 rotation_speed=360,
+                 max_speed=300.0,
+                 acceleration=600.0,
+                 radius=16.0,
+                 initial_energy=1.0,
+                 mass=1.0,
+                 elasticity=0.1,
                  color=(0, 0, 0)):
-        super(Agent, self).__init__(position, radius, initial_energy, color)
+        super(Agent, self).__init__(radius, initial_energy, color)
         self.field_of_view = field_of_view
         self.ray_count = ray_count
         self.ray_length = ray_length
@@ -65,7 +61,7 @@ class Agent(Entity):
         self.direction = direction
         self.max_speed = max_speed
         self.acceleration = acceleration
-        self.velocity = velocity
+        self.velocity = Vector2()
         self.mass = mass
         self.elasticity = elasticity
         self.perceptions = []
@@ -73,14 +69,15 @@ class Agent(Entity):
     def get_head_position(self):
         return self.position + self.direction * self.radius
 
-    def perceive(self, entities, screen=None):
+    def perceive(self, entities):
         stop_angle = self.field_of_view / 2
         start_angle = -stop_angle
-        delta_angle = self.field_of_view / self.ray_count
+        delta_angle = self.field_of_view / (self.ray_count+1)
         angles = np.arange(start_angle, stop_angle + delta_angle, delta_angle)
-        perceptions = []
+        self.perceptions.clear()
+        color_perceptions = np.empty((self.ray_count, 3))
         head_position = self.get_head_position()
-        for angle in angles:
+        for i, angle in enumerate(angles):
             # vector from ray start to ray end
             ray_direction_vec = self.direction.rotate(angle) * self.ray_length
             collisions = []
@@ -125,11 +122,9 @@ class Agent(Entity):
                     perception = (ray_direction_vec, (255, 255, 255))
                 else:
                     perception = (ray_direction_vec, (0, 0, 0))
-
-            perceptions.append(perception)
-
-        self.perceptions = perceptions
-        return perceptions
+            self.perceptions.append(perception)
+            color_perceptions[i]=perception[1]
+        return color_perceptions
 
     def perform_action(self, delta, action):
         if action != Action.NOTHING:
