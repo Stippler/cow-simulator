@@ -2,14 +2,26 @@ from deepcow.constant import *
 from deepcow.actions import *
 from pygame.math import Vector2
 from math import sqrt
+from pygame.surface import Surface
 import pygame
 import numpy as np
+import random
 
 pygame.font.init()
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 128)
 BLACK = (0, 0, 0)
+
+
+class State(object):
+
+    def __init__(self, agent: 'Agent', perception: np.ndarray) -> None:
+        super().__init__()
+        self.position = np.array(agent.position)
+        self.velocity = np.array(agent.velocity)
+        self.direction = np.array(agent.direction)
+        self.perception = perception
 
 
 class Entity(object):
@@ -31,7 +43,18 @@ class Entity(object):
         radius = int(self.radius)
         pygame.draw.circle(screen, self.color, (x, y), radius)
 
-    def draw_energy_reward(self, screen, index):
+    def reset(self):
+        start_x = self.radius
+        stop_x = GAME_WIDTH - self.radius
+        start_y = self.radius
+        stop_y = GAME_HEIGHT - self.radius
+        x = random.uniform(start_x, stop_x)
+        y = random.uniform(start_y, stop_y)
+        self.position = Vector2(x, y)
+        self.reward = 0
+        self.energy = 1.0
+
+    def draw_information(self, screen, index):
         text = self.font.render('Energy: {:.2f} Reward: {:.2f}'.format(self.energy, self.reward), True, self.color,
                                 WHITE)
         text_rect = text.get_rect()
@@ -46,8 +69,8 @@ class Agent(Entity):
                  ray_length=300,
                  direction=Vector2(1.0, 0.0),
                  rotation_speed=360,
-                 max_speed=300.0,
-                 acceleration=600.0,
+                 max_speed=200.0,
+                 acceleration=1000.0,
                  radius=16.0,
                  initial_energy=1.0,
                  mass=1.0,
@@ -65,14 +88,20 @@ class Agent(Entity):
         self.mass = mass
         self.elasticity = elasticity
         self.perceptions = []
+        self.last_action = Action.NOTHING
 
-    def get_head_position(self):
+    def reset(self):
+        super().reset()
+        self.velocity = Vector2()
+        self.direction = Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize()
+
+    def get_head_position(self) -> Vector2:
         return self.position + self.direction * self.radius
 
-    def perceive(self, entities):
+    def perceive(self, entities: [Entity]) -> State:
         stop_angle = self.field_of_view / 2
         start_angle = -stop_angle
-        delta_angle = self.field_of_view / (self.ray_count+1)
+        delta_angle = self.field_of_view / (self.ray_count - 1)
         angles = np.arange(start_angle, stop_angle + delta_angle, delta_angle)
         self.perceptions.clear()
         color_perceptions = np.empty((self.ray_count, 3))
@@ -123,10 +152,12 @@ class Agent(Entity):
                 else:
                     perception = (ray_direction_vec, (0, 0, 0))
             self.perceptions.append(perception)
-            color_perceptions[i]=perception[1]
-        return color_perceptions
+            color_perceptions[i] = perception[1]
+        state = State(self, color_perceptions / 255.0)
+        return state
 
-    def perform_action(self, delta, action):
+    def perform_action(self, delta: float, action: Action) -> None:
+        self.last_action = action
         if action != Action.NOTHING:
             acceleration_delta = self.acceleration * delta
             if action == Action.MOVE_FORWARD:
@@ -142,13 +173,13 @@ class Agent(Entity):
             elif action == Action.ROTATE_COUNTER_CLOCK:
                 self.direction = self.direction.rotate(-self.rotation_speed * delta)
 
-    def update_position(self, delta):
+    def update_position(self, delta: float) -> None:
         speed = self.velocity.magnitude()
         if speed > self.max_speed:
             self.velocity *= self.max_speed / speed
         self.position += (self.velocity * delta)
 
-    def calculate_agents_collisions(self, agents):
+    def calculate_agents_collisions(self, agents: ['Agent']) -> None:
         # collision with other agents
         for agent in agents:
             if self != agent:
@@ -186,7 +217,7 @@ class Agent(Entity):
                 agent.velocity = agent.velocity + self_to_agent_vec * (
                         -2 * self.mass * (1 + agent.elasticity))
 
-    def calculate_border_collisions(self):
+    def calculate_border_collisions(self) -> None:
         # collision with border
         pos = self.position
         vel = self.velocity
@@ -208,7 +239,7 @@ class Agent(Entity):
             pos.y += down_distance
             vel.y *= -1
 
-    def intersects_head(self, entity):
+    def __intersects_head(self, entity: Entity) -> None:
         head_position = self.get_head_position()
         head_radius = self.radius / 2
         total_radius = head_radius + entity.radius
@@ -218,7 +249,7 @@ class Agent(Entity):
         eat_count = 0
         delta_reward = delta
         for food in foods:
-            if self.intersects_head(food):
+            if self.__intersects_head(food):
                 self.reward += delta_reward
                 self.energy += delta_reward
                 food.reward -= delta_reward
@@ -227,10 +258,10 @@ class Agent(Entity):
                     eat_count += 1
         return self.reward, eat_count
 
-    def reset_reward(self):
+    def reset_reward(self) -> None:
         self.reward = 0
 
-    def draw_perception(self, screen):
+    def draw_perception(self, screen: Surface) -> None:
         head_position = self.get_head_position()
         for perception in self.perceptions:
             start_x = int(head_position.x)
@@ -240,10 +271,19 @@ class Agent(Entity):
             end_y = int(end_position.y)
             pygame.draw.line(screen, perception[1], (start_x, start_y), (end_x, end_y))
 
-    def draw(self, screen):
+    def draw(self, screen: Surface) -> None:
         super().draw(screen)
         head_position = self.get_head_position()
         x = int(head_position.x)
         y = int(head_position.y)
         radius = int(self.radius / 2)
         pygame.draw.circle(screen, (0, 0, 0), (x, y), radius)
+
+    def draw_information(self, screen: Surface, index: int) -> Surface:
+        text = self.font.render(
+            'Last Action: {} Energy: {:.2f} Reward: {:.2f}'.format(self.last_action, self.energy, self.reward), True,
+            self.color,
+            WHITE)
+        text_rect = text.get_rect()
+        text_rect.move_ip(GAME_WIDTH - text_rect.width, index * text_rect.height)
+        screen.blit(text, text_rect)
