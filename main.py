@@ -14,7 +14,7 @@ from deepcow.environment import Environment
 from deepcow.constant import *
 from deepcow.actions import *
 from deepcow.entity import *
-
+import pygame
 
 class DQNAgent:
     def __init__(self, state_size, action_size):
@@ -33,7 +33,7 @@ class DQNAgent:
         model = Sequential()
         model.add(Dense(100, input_dim=self.state_size, activation='relu'))
         model.add(Dense(7, input_dim=self.state_size, activation='relu'))
-        model.add(Dense(self.action_size, activation='softmax'))
+        model.add(Dense(self.action_size, activation='linear'))
         model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate))
         return model
 
@@ -41,10 +41,14 @@ class DQNAgent:
         """add a tuple for learning"""
         self.memory.append((state, action, reward, next_state, done))
 
-    def select_action(self, state):
+    def explore_select_action(self, state):
         """returns an action given a state"""
         if np.random.rand() <= self.epsilon:
             return random.randrange(self.action_size)
+        action_values = self.model.predict(state)
+        return np.argmax(action_values[0])
+
+    def select_action(self, state):
         action_values = self.model.predict(state)
         return np.argmax(action_values[0])
 
@@ -72,7 +76,7 @@ class DQNAgent:
 
 
 def transform_state_1d(state: State) -> np.ndarray:
-    return np.array([np.concatenate([state.direction, state.perception.ravel()])])
+    return np.array([np.concatenate([state.direction, state.velocity, state.perception.ravel()])])
 
 
 def training():
@@ -80,18 +84,19 @@ def training():
     ray_size = 20
     ray_length = 450
     action_size = 7
-    cow_brain = DQNAgent(2+ray_size * 3, action_size)
-    cow_brain.load("models/current-cow.HDF5")
+    cow_brain = DQNAgent(4+ray_size * 3, action_size)
+    # cow_brain.load("models/current-cow.HDF5")
     environment = Environment(cow_ray_count=ray_size, cow_ray_length=ray_length, grass_count=1,
-                              wolf_ray_count=ray_size, draw=False)
-    batch_size = 128
+                              wolf_ray_count=ray_size, draw=True)
+    batch_size = 32
+    clock=pygame.time.Clock()
     for epoch in range(1_000_000):
         for episode in range(EPISODES):
             states = environment.reset()
             cow_state = transform_state_1d(states[0])
 
             for frame_number in range(2000):
-                action = cow_brain.select_action(cow_state)
+                action = cow_brain.explore_select_action(cow_state)
 
                 states, rewards, done = environment.step([Action(action), Action.NOTHING])
 
@@ -108,7 +113,7 @@ def training():
                     return
             cow_brain.replay(batch_size)
             print('completed epoch', epoch, 'episode', episode)
-        cow_brain.save("models/current-cow.HDF5")
+        # cow_brain.save("models/current-cow.HDF5")
 
 
 training()

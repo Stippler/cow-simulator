@@ -22,13 +22,14 @@ class State(object):
         self.velocity = np.array(agent.velocity)
         self.direction = np.array(agent.direction)
         self.perception = perception
+        self.velocity = np.array(agent.velocity)/agent.max_speed
 
 
 class Entity(object):
     font = pygame.font.Font('freesansbold.ttf', 12)
 
     def __init__(self,
-                 radius=DEFAULT_RADIUS,
+                 radius=32,
                  initial_energy=1,
                  color=(0, 0, 0)):
         self.position = Vector2()
@@ -71,7 +72,7 @@ class Agent(Entity):
                  rotation_speed=360,
                  max_speed=200.0,
                  acceleration=1000.0,
-                 radius=16.0,
+                 radius=32.0,
                  initial_energy=1.0,
                  mass=1.0,
                  elasticity=0.1,
