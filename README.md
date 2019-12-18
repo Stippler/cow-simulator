@@ -23,44 +23,60 @@
 [Quick Tip: Use Quadtrees to Detect Likely Collisions in 2D Space](https://gamedevelopment.tutsplus.com/tutorials/quick-tip-use-quadtrees-to-detect-likely-collisions-in-2d-space--gamedev-374)
 
 ## Topic
-This project includes different Reinforcement Learning strategies in a dynamic, multi-agent environment. <!-- TODO: define it more precisly-->
+This project includes a Reinforcement Learning strategy in a dynamic, multi-agent environment. <!-- TODO: define it more precisly-->
 
 ## Type
-The type of this project is **Bring your own data** for reinforcement learning projects, because it provides a new environment for reinforcement learning strategies. Additionally it includes basic neural networks for every actor and learning algorithms for them. It is also partly **Beat the classics** as it is tested against rule based systems with path finding algorithms. 
+The type of this project is **Bring your own data** for reinforcement learning projects, because it provides a new environment for reinforcement learning strategies. 
+Additionally it includes basic neural networks for every actor and learning algorithms for them.
 
 ## Summary
 ### Description
 
-This project consists of a simulation that simulates a partially observable, multi-agent, stochastic, dynamic, continuous in space, discrete in time and partly unknown (missing knowledge about laws of physics) environment.
+This project consists of a simulation that simulates a partially observable, multi-agent, dynamic, continuous in space, discrete in time and partly unknown (missing knowledge about laws of physics) environment.
 
-There are two different groups of actors that can interact consciously with the environment: cows and wolves. 
-Additionally, there is another entity called grass. Each actor has a certain energy level. If the energy level of a cow or a wolf drops below zero, it dies. 
-Cows and wolves have perceptors in order to obtain a partial observation of the environment.
+There are two actors that can interact consciously with the environment: a cow and wolf. 
+Additionally, there is another entity called grass. 
+Each entity has a certain energy level.
+The cow gets energy by touching grass, the wolf by touching cows.
+Each entity loses energy by touching its counterpart or moving around.
+The goal of each actor is to obtain as much energy as possible.
+If the energy level of a cow drops below zero the wolf wins, if the energy of the grass drops below zero the cow wins.
+An actor perceives its environment, by sending out rays with a limited reach. 
+The rays return the color of the actor they intersect with, black if they intersected with the game border or white if they did not intersect with anything.
+The next figure shows a visualisation of the rays, the cow (brown), the wolf (blue), the grass (red) and a visualisation of the rays.
+![figure1](screenshot.png)
 
-The following figure shows a visualisation of the actors, the green circle represents grass, the brown circle represents a cow and the blue circle represents a wolf. The little circles represent their perceptors.
+The little black circles represent their head.
 
-![figure1](actors.png)
+To implement the actors' AI deep Q learning as described in the lecture was used, however it does not achieve wanted results as of yet.
 
-If an actor wants to perceive its environment, its perceptor sends out rays with a limited reach. The rays return the color of the actor/perceptor they first intersect with or black if they do not intersect with another actor. The next figure shows a visualisation of the rays. The color of the rays show the value they return.
-
-![figure1](perceptor.png)
-
-Every entity has energy, if the energy drops below zero the entity vanishes. The cow gets energy by touching grass, the wolf by touching cows. Each entity loses energy by touching its counterpart or moving around. The goal of each actor is to obtain as much energy as possible. Grass gets more energy if it is left alone.
-
-To implement the actors' AI the approach of (Proximal Policy Optimization Algorithms)[https://arxiv.org/abs/1707.06347] is primarily used. Furthermore, [Overcoming catastrophic forgetting in neural networks](https://www.pnas.org/content/114/13/3521.abstract) is the basis for teaching the actors to achieve sequential tasks, such as running away from predators after eating.
 
 ### Dataset
-There is no real dataset. The project implements the environment, gives an visualisation of the state of the world and implements rule based actors.
+There is no real dataset. The project implements the environment and a deep q learning algorithm for the actors and gives an visualisation of the state of the world.
+
+### Error metric
+A multi agent environment has no intuitive error metric as it is a zero-sum game.
+If one agent wins the other looses.
+However if the agents algorithm produce a reasonable behaviour the agents should obtain more rewards on average than if they behaved randomly.
+Therefore the energy gain was chosen as error metric and the goal was to have a average reward of 0.3 for both the wolf and the cow.
+The agents do not behave reasonable, this can be due to not enough testing. Therefore their rewards fluctuate as shown in the graph.
+![figure](result/dqn-result.png)
+
+### Documentation
+
+![figure](documentation/overview.png)
 
 ### Work-Breakdown structure
 
+
 | Individual Task &nbsp;                                     | Time estimate &nbsp; | Time used |
 |------------------------------------------------------------|----------------------|-----------|
-| research topic and first draft                              | 5h                   | 8h        |
-| building environment                                       | 10h                  |           |
-| designing and building an appropriate network &nbsp;&nbsp; | 20h                  |           |
-| fine-tuning that network                                    | 10h                  |           |
+| research topic and first draft                             | 5h                   |  8h       |
+| building environment                                       | 10h                  |  14h      |
+| setting up cuda, cudnn... on manjaro                       | 20m                  |  21h      |
+| designing and building an appropriate network &nbsp;&nbsp; | 20h                  |  4h       |
+| fine-tuning that network                                   | 10h                  |  3h       |
 | building an application to present the results             | 5h                   |           |
-| writing the final report                                    | 10h                  |           |
+| writing the final report                                   | 10h                  |           |
 | preparing the presentation of the project                  | 5h                   |           |
 

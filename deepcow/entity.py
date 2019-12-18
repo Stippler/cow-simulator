@@ -22,7 +22,7 @@ class State(object):
         self.velocity = np.array(agent.velocity)
         self.direction = np.array(agent.direction)
         self.perception = perception
-        self.velocity = np.array(agent.velocity)/agent.max_speed
+        self.velocity = np.array(agent.velocity) / agent.max_speed
 
 
 class Entity(object):
@@ -120,7 +120,7 @@ class Agent(Entity):
                 # solve quadratic equation
                 a = ray_direction_vec.dot(ray_direction_vec)
                 b = 2 * entity_head_vec.dot(ray_direction_vec)
-                c = entity_head_vec.dot(entity_head_vec) - self.radius ** 2
+                c = entity_head_vec.dot(entity_head_vec) - entity.radius ** 2
                 discriminant = b * b - 4 * a * c
                 if discriminant >= 0:
                     # ray hit the entity
@@ -246,9 +246,9 @@ class Agent(Entity):
         total_radius = head_radius + entity.radius
         return head_position.distance_squared_to(entity.position) < total_radius * total_radius
 
-    def eat(self, foods, delta):
-        eat_count = 0
+    def calculate_reward(self, foods, delta):
         delta_reward = delta
+        done = False
         for food in foods:
             if self.__intersects_head(food):
                 self.reward += delta_reward
@@ -256,11 +256,14 @@ class Agent(Entity):
                 food.reward -= delta_reward
                 food.energy -= delta_reward
                 if food.energy <= 0:
-                    eat_count += 1
-        return self.reward, eat_count
+                    self.reward += 10
+                    done = True
+        return done
 
-    def reset_reward(self) -> None:
+    def get_reset_reward(self) -> float:
+        reward = self.reward
         self.reward = 0
+        return reward
 
     def draw_perception(self, screen: Surface) -> None:
         head_position = self.get_head_position()

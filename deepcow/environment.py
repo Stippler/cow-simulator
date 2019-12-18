@@ -22,7 +22,7 @@ class Environment(object):
                  wolf_count=1,
                  wolf_mass=2.0,
                  grass_count=1,
-                 delta_time=1.0 / 60.0,
+                 delta_time=1.0 / 30.0,
                  game_width=800,
                  game_height=600,
                  draw=True):
@@ -53,7 +53,7 @@ class Environment(object):
         self.agents = self.cows + self.wolves
 
         # initialize entities
-        self.grass = [Entity(color=(0, 255, 0)) for x in range(grass_count)]
+        self.grass = [Entity(color=(0, 255, 0), radius=16) for x in range(grass_count)]
         self.entities = self.agents + self.grass
 
         # gameloop
@@ -79,15 +79,17 @@ class Environment(object):
         for agent in self.agents:
             agent.calculate_border_collisions()
 
-    def __eat(self, agents: [Agent], foods: [Entity]) -> (np.ndarray, bool):
-        rewards = np.empty(len(agents))
+    def __calculate_rewards(self, agents: [Agent], foods: [Entity]) -> (np.ndarray, bool):
         done = False
         for index, agent in enumerate(agents):
-            reward, eaten = agent.eat(foods, self.delta_time)
-            rewards[index] = reward + eaten * 10
-            if eaten != 0:
-                done = True
-        return rewards, done
+            done = done or agent.calculate_reward(foods, self.delta_time)
+        return done
+
+    def __get_reset_rewards(self, agents: [Agent]):
+        rewards = np.empty(len(agents))
+        for index, agent in enumerate(agents):
+            rewards[index] = agent.get_reset_reward()
+        return rewards
 
     def __perceive(self) -> [State]:
         return [agent.perceive(self.entities) for agent in self.agents]
@@ -96,10 +98,14 @@ class Environment(object):
         self.__perform_actions(actions)
         self.__update_agents_positions()
         states = self.__perceive()
-        rewards, done = self.__eat(self.cows, self.grass)
+        cow_done = self.__calculate_rewards(self.cows, self.grass)
+        wolf_done = self.__calculate_rewards(self.wolves, self.cows)
+        cow_rewards = self.__get_reset_rewards(self.cows)
+        wolf_rewards = self.__get_reset_rewards(self.wolves)
+        done = cow_done or wolf_done
         if self.draw:
             self.__draw_environment()
-        return states, rewards, done
+        return states, np.concatenate([cow_rewards, wolf_rewards]), done
 
     def __draw_environment(self, draw_perception=True, draw_entity_information=True):
         self.screen.fill(GRAY)
