@@ -2,23 +2,25 @@
 version: 2
 jobs:
   build:
+    working_directory: ~/Applied-Deep-Learning
     docker:
-      - image: circleci/python:3.7
-
+      - image: circleci/python:3.7.5
     steps:
       # Step 1: obtain repo from GitHub
       - checkout
       # Step 2: create virtual env and install dependencies
       - run:
           name: install dependencies
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install -r .circleci/dependencies.txt
-      # Step 3: run linter and tests
+          command: |  # use pipenv to install dependencies
+              sudo pip install pipenv
+              pipenv install
+    # Step 3: run tests
       - run:
-          name: run tests
-          command: |
-            . venv/bin/activate
-          #  flake8 --exclude=venv* --statistics
-          #  pytest -v --cov=calculator
+         name: run tests
+         command: |
+           pipenv run python -m unittest discover
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: test-results
+          destination: tr1

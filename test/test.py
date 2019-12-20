@@ -1,12 +1,13 @@
 import unittest
 from deepcow import *
 from deepcow.agent import Agent, Entity, State
+from deepcow.environment import *
 from pygame.math import Vector2
 import numpy as np
 
 
-class TestAgent(unittest.TestCase):
-    def test_perception(self):
+class TestEnvironment(unittest.TestCase):
+    def test_agent_perception(self):
         grass = Entity(color=(0, 255, 0))
         grass.position = Vector2(20, 30)
         cow = Agent(ray_count=10, ray_length=200, direction=Vector2(-1, 0))
@@ -23,9 +24,34 @@ class TestAgent(unittest.TestCase):
         print(actual_cow_state.perception)
         self.assertTrue(perception_correct)
 
+    def test_environment_perception(self):
+        environment = Environment(draw=False)
+        cow = environment.cows[0]
+        wolf = environment.wolves[0]
+        grass = environment.grass[0]
+        cow.position = Vector2(3, 3)
+        cow.direction = Vector2(1, 0)
+        cow.radius = 1
+        cow.ray_count = 5
+        cow.ray_length = 5
+        cow.field_of_view = 90
+        wolf.position = Vector2(15, 3)
+        wolf.direction = Vector2(-1, 0)
+        wolf.radius = 1
+        wolf.ray_count = 5
+        wolf.ray_length = 6
+        wolf.field_of_view = 90
+        grass.position = Vector2(7, 5)
+        grass.radius = 1
 
-class TestEnvironment:
-    pass
+        states, rewards, done = environment.step([Action.NOTHING, Action.NOTHING])
+        self.assertFalse(done)
+        should_cow_perception = np.array([[0, 0, 0], [1, 1, 1], [1, 1, 1], [0, 1, 0], [0, 1, 0]])
+        cow_perception_correct = np.allclose(states[0].perception, should_cow_perception)
+        self.assertTrue(cow_perception_correct)
+        should_wolf_perception = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1], [0, 0, 0]])
+        wolf_perception_correct = np.allclose(states[1].perception, should_wolf_perception)
+        self.assertTrue(wolf_perception_correct)
 
 
 if __name__ == '__main__':
