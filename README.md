@@ -58,7 +58,7 @@ There is no real dataset. The project implements the environment and a deep q le
 A multi agent environment has no intuitive error metric as it is a zero-sum game.
 If one agent wins the other looses.
 However if the agents algorithm produce a reasonable behaviour the agents should obtain more rewards on average than if they behaved randomly.
-Therefore the energy gain was chosen as metric and the goal was to have a average reward of 0.3 for both the wolf and the cow.
+Therefore the energy gain was chosen as metric and the goal was to have a average reward of above 0.5 for both the wolf and the cow.
 The agents did not behave reasonable, they mostly moved to one border and stayed there.
 This can be observed in the following graph, as the reward just fluctuates in this case.
 ![figure](result/dqn-result-without-border.png)
