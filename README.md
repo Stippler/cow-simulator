@@ -58,9 +58,20 @@ There is no real dataset. The project implements the environment and a deep q le
 A multi agent environment has no intuitive error metric as it is a zero-sum game.
 If one agent wins the other looses.
 However if the agents algorithm produce a reasonable behaviour the agents should obtain more rewards on average than if they behaved randomly.
-Therefore the energy gain was chosen as error metric and the goal was to have a average reward of 0.3 for both the wolf and the cow.
-The agents do not behave reasonable, this can be due to not enough testing. Therefore their rewards fluctuate as shown in the graph.
+Therefore the energy gain was chosen as metric and the goal was to have a average reward of 0.3 for both the wolf and the cow.
+The agents did not behave reasonable, they mostly moved to one border and stayed there.
+This can be observed in the following graph, as the reward just fluctuates in this case.
+![figure](result/dqn-result-without-border.png)
+
+In oder to get better results a negative reward was added if an agent hits the border.
+In the next figure the reward graph can be seen, the brown line represents the average cow reward per epoch and the blue graph the wolf reward per epoch.
+
 ![figure](result/dqn-result.png)
+
+As the border collision count is interesting as well it was also captured and plotted.
+The goal was to have an average collision count of 5.
+
+![figure](result/dqn-result-collision-result.png)
 
 ### Documentation
 
@@ -75,7 +86,7 @@ The agents do not behave reasonable, this can be due to not enough testing. Ther
 | building environment                                       | 10h                  |  14h      |
 | setting up cuda, cudnn... on manjaro                       | 20m                  |  21h      |
 | designing and building an appropriate network &nbsp;&nbsp; | 20h                  |  4h       |
-| fine-tuning that network                                   | 10h                  |  3h       |
+| fine-tuning that network                                   | 10h                  |  7h       |
 | building an application to present the results             | 5h                   |           |
 | writing the final report                                   | 10h                  |           |
 | preparing the presentation of the project                  | 5h                   |           |

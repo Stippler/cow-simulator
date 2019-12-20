@@ -44,7 +44,7 @@ class TestEnvironment(unittest.TestCase):
         grass.position = Vector2(7, 5)
         grass.radius = 1
 
-        states, rewards, done = environment.step([Action.NOTHING, Action.NOTHING])
+        states, rewards, done, info = environment.step([Action.NOTHING, Action.NOTHING])
         self.assertFalse(done)
         should_cow_perception = np.array([[0, 0, 0], [1, 1, 1], [1, 1, 1], [0, 1, 0], [0, 1, 0]])
         cow_perception_correct = np.allclose(states[0].perception, should_cow_perception)

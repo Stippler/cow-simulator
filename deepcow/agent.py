@@ -217,7 +217,7 @@ class Agent(Entity):
                 agent.velocity = agent.velocity + self_to_agent_vec * (
                         -2 * self.mass * (1 + agent.elasticity))
 
-    def calculate_border_collisions(self) -> None:
+    def calculate_border_collisions(self) -> True:
         # collision with border
         pos = self.position
         vel = self.velocity
@@ -226,22 +226,28 @@ class Agent(Entity):
         left_distance = pos.x - r
         up_distance = pos.y - r
         down_distance = GAME_HEIGHT - (pos.y + r)
+        border_collision = False
         if right_distance < 0:
             self.reward -= 0.1
             pos.x += right_distance
             vel.x *= -1
+            border_collision = True
         elif left_distance < 0:
             self.reward -= 0.1
             pos.x -= left_distance
             vel.x *= -1
+            border_collision = True
         if up_distance < 0:
             self.reward -= 0.1
             pos.y -= up_distance
             vel.y *= -1
+            border_collision = True
         elif down_distance < 0:
             self.reward -= 0.1
             pos.y += down_distance
             vel.y *= -1
+            border_collision = True
+        return border_collision
 
     def __intersects_head(self, entity: Entity) -> None:
         head_position = self.get_head_position()

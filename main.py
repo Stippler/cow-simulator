@@ -32,6 +32,8 @@ def train_dqn_agents(cow_model: DQNAgent,
 
         cow_reword_per_epoch = 0
         wolf_reword_per_epoch = 0
+        wolf_border_collision = 0
+        cow_border_collision = 0
 
         for episode in range(episode_length):
             states = environment.reset()
@@ -42,7 +44,10 @@ def train_dqn_agents(cow_model: DQNAgent,
                 cow_action = cow_model.explore_select_action(cow_state)
                 wolf_action = wolf_model.explore_select_action(wolf_state)
 
-                states, rewards, done = environment.step([Action(cow_action), Action(wolf_action)])
+                states, rewards, done, info = environment.step([Action(cow_action), Action(wolf_action)])
+
+                cow_border_collision += info['cow_border_collisions']
+                wolf_border_collision += info['wolf_border_collisions']
 
                 cow_reward = rewards[0]
                 cow_reword_per_epoch += cow_reward
@@ -61,11 +66,13 @@ def train_dqn_agents(cow_model: DQNAgent,
                 if done:
                     break
                 if environment.quit():
-                    return pd.DataFrame(data=all_rewards, columns=['epoch', 'cow_reward', 'wolf_reward'], )
-            cow_reword_per_epoch /= episode_length
-            wolf_reword_per_epoch /= episode_length
+                    return pd.DataFrame(data=all_rewards,
+                                        columns=['epoch', 'cow_reward', 'wolf_reward',
+                                                 'wolf_border_collision', 'cow_border_collision'], )
 
-        all_rewards.append([epoch, cow_reword_per_epoch, wolf_reword_per_epoch])
+        all_rewards.append(
+            [epoch, cow_reword_per_epoch / episode_length, wolf_reword_per_epoch / episode_length,
+             cow_border_collision / episode_length, wolf_border_collision / episode_length])
         for i in range(4):
             cow_model.replay(batch_size)
             wolf_model.replay(batch_size)
@@ -76,17 +83,14 @@ def train_dqn_agents(cow_model: DQNAgent,
 
 epoch_length = 1000
 ray_count = 20
-ray_length = 450
 action_size = 7
 
 cow_model = DQNAgent(4 + ray_count * 3, action_size, preprocess=transform_state_1d)
 wolf_model = DQNAgent(4 + ray_count * 3, action_size, preprocess=transform_state_1d)
 
 environment = Environment(cow_ray_count=ray_count,
-                          cow_ray_length=ray_length,
                           grass_count=1,
                           wolf_ray_count=ray_count,
-                          wolf_ray_length=ray_length,
                           draw=True)
 
 results = train_dqn_agents(cow_model, wolf_model, environment)
@@ -96,4 +100,11 @@ sns.lineplot(results['epoch'], results['wolf_reward'], color='blue')
 plt.xlabel('epoch')
 plt.ylabel('reward')
 plt.savefig('result/dqn-result.png')
+plt.show()
+
+sns.lineplot(results['epoch'], results['cow_border_collision'], color='brown', )
+sns.lineplot(results['epoch'], results['wolf_border_collision'], color='blue')
+plt.xlabel('epoch')
+plt.ylabel('border collision count')
+plt.savefig('result/dqn-border-collision-result.png')
 plt.show()
