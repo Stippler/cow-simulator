@@ -44,6 +44,7 @@ If the energy level of a cow drops below zero the wolf wins, if the energy of th
 An actor perceives its environment, by sending out rays with a limited reach. 
 The rays return the color of the actor they intersect with, black if they intersected with the game border or white if they did not intersect with anything.
 The next figure shows a visualisation of the rays, the cow (brown), the wolf (blue), the grass (red) and a visualisation of the rays.
+
 ![figure1](screenshot.png)
 
 The little black circles represent their head.
@@ -61,6 +62,7 @@ However if the agents algorithm produce a reasonable behaviour the agents should
 Therefore the energy gain was chosen as metric and the goal was to have a average reward of above 0.5 for both the wolf and the cow.
 The agents did not behave reasonable, they mostly moved to one border and stayed there.
 This can be observed in the following graph, as the reward just fluctuates in this case.
+
 ![figure](result/dqn-result-without-border.png)
 
 In oder to get better results a negative reward was added if an agent hits the border.
@@ -71,7 +73,7 @@ In the next figure the reward graph can be seen, the brown line represents the a
 As the border collision count is interesting as well it was also captured and plotted.
 The goal was to have an average collision count of 5.
 
-![figure](result/dqn-result-collision-result.png)
+![figure](result/dqn-border-collision-result.png)
 
 ### Documentation
 
