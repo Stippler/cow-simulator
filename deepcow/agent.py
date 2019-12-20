@@ -19,10 +19,9 @@ class State(object):
     def __init__(self, agent: 'Agent', perception: np.ndarray) -> None:
         super().__init__()
         self.position = np.array(agent.position)
-        self.velocity = np.array(agent.velocity)
         self.direction = np.array(agent.direction)
-        self.perception = perception
         self.velocity = np.array(agent.velocity) / agent.max_speed
+        self.perception = perception
 
 
 class Entity(object):
@@ -228,15 +227,19 @@ class Agent(Entity):
         up_distance = pos.y - r
         down_distance = GAME_HEIGHT - (pos.y + r)
         if right_distance < 0:
+            self.reward -= 0.1
             pos.x += right_distance
             vel.x *= -1
         elif left_distance < 0:
+            self.reward -= 0.1
             pos.x -= left_distance
             vel.x *= -1
         if up_distance < 0:
+            self.reward -= 0.1
             pos.y -= up_distance
             vel.y *= -1
         elif down_distance < 0:
+            self.reward -= 0.1
             pos.y += down_distance
             vel.y *= -1
 
