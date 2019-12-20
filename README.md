@@ -72,6 +72,8 @@ In the next figure the reward graph can be seen, the brown line represents the a
 
 As the border collision count is interesting as well it was also captured and plotted.
 The goal was to have an average collision count of 5.
+As seen in the following plot both agents learnt to avoid borders in certain epochs.
+The exploration rate goes down with each epoch, so agents rely more on their neuronal network in latter epochs.
 
 ![figure](result/dqn-border-collision-result.png)
 
