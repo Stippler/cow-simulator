@@ -15,7 +15,8 @@ def transform_state_1d(state: State) -> np.ndarray:
 
 def transform_state_extended(state: State) -> [np.ndarray]:
     """transforms a state for the extended dqn agent"""
-    return [np.array(np.concatenate([state.direction, state.velocity]), state.perception.ravel())]
+    transformed_state = [[np.concatenate([state.direction, state.velocity])], [np.transpose([state.perception.ravel()])]]
+    return transformed_state
 
 
 def train_dqn_agents(cow_model: DQNAgent,
@@ -94,8 +95,11 @@ epoch_length = 1000
 ray_count = 20
 action_size = 7
 
-cow_model = SimpleDQNAgent(3 + ray_count * 3, action_size, preprocess=transform_state_1d, memory_length=10_000)
-wolf_model = SimpleDQNAgent(3 + ray_count * 3, action_size, preprocess=transform_state_1d)
+cow_model = ExtendedDQNAgent(perception_size=ray_count * 3, metadata_size=3, action_size=action_size,
+                             preprocess=transform_state_extended,
+                             memory_length=10_000)
+wolf_model = ExtendedDQNAgent(perception_size=ray_count * 3, metadata_size=3, action_size=action_size,
+                              preprocess=transform_state_extended)
 
 environment = Environment(cow_ray_count=ray_count,
                           grass_count=1,
@@ -109,14 +113,14 @@ sns.lineplot(results['epoch'], results['cow_border_collision'], color='brown', )
 sns.lineplot(results['epoch'], results['wolf_border_collision'], color='blue')
 plt.xlabel('epoch')
 plt.ylabel('border collision count')
-plt.savefig('result/dqn-border-collision-result.png')
+plt.savefig('result/dq-border-collision-result.png')
 plt.show()
 
 sns.lineplot(results['epoch'], results['cow_reward'], color='brown', )
 sns.lineplot(results['epoch'], results['wolf_reward'], color='blue')
 plt.xlabel('epoch')
 plt.ylabel('reward')
-plt.savefig('result/dqn-reward.png')
+plt.savefig('result/dq-reward.png')
 plt.show()
 
 cow_model.save('models/deepq-cow.HDF5')

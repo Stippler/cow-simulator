@@ -247,8 +247,6 @@ class Agent(Entity):
             pos.y += down_distance
             vel.y *= -1
             border_collision = True
-        if border_collision:
-            self.reward -= 1
         return border_collision
 
     def __intersects_head(self, entity: Entity) -> None:
