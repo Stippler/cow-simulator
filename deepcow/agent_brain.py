@@ -54,8 +54,8 @@ class SimpleDQNAgent(DQNAgent):
     def _build_model(self):
         """build simple fully connected mlp model of DQN Agent"""
         model = Sequential()
-        model.add(Dense(100, input_dim=self.state_size, activation='relu'))
-        model.add(Dense(14, input_dim=self.state_size, activation='relu'))
+        model.add(Dense(100, input_dim=self.state_size, activation='linear'))
+        model.add(Dense(14, input_dim=self.state_size, activation='linear'))
         model.add(Dense(self.action_size, activation='linear'))
         model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate))
         return model
@@ -136,7 +136,7 @@ class ExtendedDQNAgent(DQNAgent):
 
         perception_input = Input(shape=(self.perception_size, 1))
         perception_layer = Conv1D(self.perception_size * 2, kernel_size=3,
-                                  activation='relu', strides=3)(perception_input)
+                                  activation='linear', strides=3)(perception_input)
         perception_layer = BatchNormalization()(perception_layer)
         perception_layer = Conv1D(1, kernel_size=3, activation='relu')(perception_layer)
         perception_layer = BatchNormalization()(perception_layer)
@@ -145,13 +145,12 @@ class ExtendedDQNAgent(DQNAgent):
         perception_layer = Conv1D(1, kernel_size=3, activation='relu')(perception_layer)
         perception_layer = BatchNormalization()(perception_layer)
         perception_layer = Flatten()(perception_layer)
-        perception_layer = Dense(64, activation='relu')(perception_layer)
+        perception_layer = Dense(64, activation='linear')(perception_layer)
 
         merge_layer = Concatenate(axis=1)([metadata_layer, perception_layer])
         merge_layer = Dense(64, activation='relu')(merge_layer)
         merge_layer = Dense(64, activation='relu')(merge_layer)
         merge_layer = Dense(self.action_size, activation='linear')(merge_layer)
-        merge_layer = Softmax(self.action_size)(merge_layer)
 
         model = Model(inputs=[metadata_input, perception_input], outputs=[merge_layer])
         model.compile(loss=tf.keras.losses.Huber(), optimizer=Adam())

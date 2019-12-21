@@ -265,7 +265,6 @@ class Agent(Entity):
                 food.reward -= delta_reward
                 food.energy -= delta_reward
                 if food.energy <= 0:
-                    self.reward += 10
                     done = True
         return done
 
