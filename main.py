@@ -1,9 +1,5 @@
 from datetime import datetime
-
-import keras
-
 from deepcow.agent_brain import *
-
 from deepcow.environment import Environment
 from deepcow.entity import *
 
@@ -13,12 +9,12 @@ import seaborn as sns
 
 
 def transform_state_1d(state: State) -> np.ndarray:
-    """transforms a state into a 1d numpy array"""
+    """transforms the state of an agent into a 1d numpy array for the simple deep q network"""
     return np.array([np.concatenate([state.direction, state.velocity, state.perception.ravel()])])
 
 
 def transform_state_extended(state: State) -> [np.ndarray]:
-    """transforms a state for the extended dqn agent"""
+    """transforms a state for the extended deep q network agent"""
     transformed_state = [[np.concatenate([state.direction, state.velocity])],
                          [np.transpose([state.perception.ravel()])]]
     return transformed_state
@@ -31,6 +27,7 @@ def train_dqn_agents(cow_model: DQNAgent,
                      episode_length=10,
                      game_length=1000,
                      batch_size=32) -> (DQNAgent, DQNAgent):
+    """ training loop for the deep q agents"""
     all_rewards = []
     for epoch in range(epoch_length):
         print('starting epoch {}, cow exploration rate {:.2f}% and wolf exploration rate {:.2f}%'.format(
@@ -100,11 +97,12 @@ epoch_length = 1000
 ray_count = 20
 action_size = 7
 
-logdir_cow = "logs/cow/" + datetime.now().strftime("%Y%m%d-%H%M%S")
-tensorboard_cow_callback = keras.callbacks.TensorBoard(log_dir=logdir_cow)
+# Add for debugging with tensorboard:
+# logdir_cow = "logs/cow/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+# tensorboard_cow_callback = keras.callbacks.TensorBoard(log_dir=logdir_cow)
 
-logdir_wolf = "logs/wolf/" + datetime.now().strftime("%Y%m%d-%H%M%S")
-tensorboard_wolf_callback = keras.callbacks.TensorBoard(log_dir=logdir_wolf)
+# logdir_wolf = "logs/wolf/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+# tensorboard_wolf_callback = keras.callbacks.TensorBoard(log_dir=logdir_wolf)
 
 cow_model = ExtendedDQNAgent(perception_size=ray_count * 3, metadata_size=3, action_size=action_size,
                              preprocess=transform_state_extended,
