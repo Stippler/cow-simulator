@@ -90,8 +90,8 @@ The exploration rate goes down with each epoch, so agents rely more on their neu
 | research topic and first draft                             | 5h                   |  8h       |
 | building environment                                       | 10h                  |  14h      |
 | setting up cuda, cudnn... on manjaro                       | 20m                  |  21h      |
-| designing and building an appropriate network &nbsp;&nbsp; | 20h                  |  4h       |
-| fine-tuning that network                                   | 10h                  |  7h       |
+| designing and building an appropriate network &nbsp;&nbsp; | 20h                  |  8h       |
+| fine-tuning that network                                   | 10h                  |  9h       |
 | building an application to present the results             | 5h                   |           |
 | writing the final report                                   | 10h                  |           |
 | preparing the presentation of the project                  | 5h                   |           |
