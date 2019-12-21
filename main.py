@@ -1,3 +1,7 @@
+from datetime import datetime
+
+import keras
+
 from deepcow.agent_brain import *
 
 from deepcow.environment import Environment
@@ -15,7 +19,8 @@ def transform_state_1d(state: State) -> np.ndarray:
 
 def transform_state_extended(state: State) -> [np.ndarray]:
     """transforms a state for the extended dqn agent"""
-    transformed_state = [[np.concatenate([state.direction, state.velocity])], [np.transpose([state.perception.ravel()])]]
+    transformed_state = [[np.concatenate([state.direction, state.velocity])],
+                         [np.transpose([state.perception.ravel()])]]
     return transformed_state
 
 
@@ -95,11 +100,18 @@ epoch_length = 1000
 ray_count = 20
 action_size = 7
 
+logdir_cow = "logs/cow/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_cow_callback = keras.callbacks.TensorBoard(log_dir=logdir_cow)
+
+logdir_wolf = "logs/wolf/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_wolf_callback = keras.callbacks.TensorBoard(log_dir=logdir_wolf)
+
 cow_model = ExtendedDQNAgent(perception_size=ray_count * 3, metadata_size=3, action_size=action_size,
                              preprocess=transform_state_extended,
                              memory_length=10_000)
 wolf_model = ExtendedDQNAgent(perception_size=ray_count * 3, metadata_size=3, action_size=action_size,
-                              preprocess=transform_state_extended)
+                              preprocess=transform_state_extended,
+                              memory_length=10_000)
 
 environment = Environment(cow_ray_count=ray_count,
                           grass_count=1,
