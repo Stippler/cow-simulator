@@ -63,19 +63,20 @@ Therefore the energy gain was chosen as metric and the goal was to have a averag
 The agents did not behave reasonable, they mostly moved to one border and stayed there.
 This can be observed in the following graph, as the reward just fluctuates in this case.
 
-![figure](result/dqn-result-without-border.png)
+![figure](result/dqn-result-without-border-fixed.png)
 
 In oder to get better results a negative reward was added if an agent hits the border.
-In the next figure the reward graph can be seen, the brown line represents the average cow reward per epoch and the blue graph the wolf reward per epoch.
+Additionally the agents actions were changed to move the agent relative to its direction instead of relative to the screen.
+In the next figure the reward graph can be seen.
 
-![figure](result/dqn-result.png)
+![figure](result/dqn-reward-simple.png)
 
-As the border collision count is interesting as well it was also captured and plotted.
+As the border collision count is interesting as well, it was also captured and plotted.
 The goal was to have an average collision count of 5.
 As seen in the following plot both agents learnt to avoid borders in certain epochs.
 The exploration rate goes down with each epoch, so agents rely more on their neuronal network in latter epochs.
 
-![figure](result/dqn-border-collision-result.png)
+![figure](result/dqn-border-collision-result-simple.png)
 
 ### Documentation
 

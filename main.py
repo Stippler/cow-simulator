@@ -1,7 +1,7 @@
-from deepcow.agent_brain import DQNAgent
+from deepcow.agent_brain import *
 
 from deepcow.environment import Environment
-from deepcow.agent import *
+from deepcow.entity import *
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -13,25 +13,27 @@ def transform_state_1d(state: State) -> np.ndarray:
     return np.array([np.concatenate([state.direction, state.velocity, state.perception.ravel()])])
 
 
+def transform_state_extended(state: State) -> [np.ndarray]:
+    """transforms a state for the extended dqn agent"""
+    return [np.array(np.concatenate([state.direction, state.velocity]), state.perception.ravel())]
+
+
 def train_dqn_agents(cow_model: DQNAgent,
                      wolf_model: DQNAgent,
                      environment: Environment,
                      epoch_length=1000,
-                     episode_length=4,
+                     episode_length=10,
                      game_length=1000,
                      batch_size=32) -> (DQNAgent, DQNAgent):
-    # clock = pygame.time.Clock()
-
     all_rewards = []
     for epoch in range(epoch_length):
-
         print('starting epoch {}, cow exploration rate {:.2f}% and wolf exploration rate {:.2f}%'.format(
             epoch,
-            cow_model.epsilon,
-            wolf_model.epsilon))
+            cow_model.get_exploration_rate(),
+            wolf_model.get_exploration_rate()))
 
-        cow_reword_per_epoch = 0
-        wolf_reword_per_epoch = 0
+        cow_reward_per_epoch = 0
+        wolf_reward_per_epoch = 0
         wolf_border_collision = 0
         cow_border_collision = 0
 
@@ -50,34 +52,41 @@ def train_dqn_agents(cow_model: DQNAgent,
                 wolf_border_collision += info['wolf_border_collisions']
 
                 cow_reward = rewards[0]
-                cow_reword_per_epoch += cow_reward
+                cow_reward_per_epoch += cow_reward
                 cow_next_state = states[0]
 
                 wolf_reward = rewards[1]
-                wolf_reword_per_epoch += wolf_reward
+                wolf_reward_per_epoch += wolf_reward
                 wolf_next_state = states[1]
 
-                cow_model.remember(cow_state, cow_action, cow_reword_per_epoch, cow_next_state, done)
-                wolf_model.remember(wolf_state, wolf_action, wolf_reword_per_epoch, wolf_next_state, done)
+                if frame == game_length - 1:
+                    done = True
+
+                cow_model.remember(cow_state, cow_action, cow_reward_per_epoch, cow_next_state, done)
+                wolf_model.remember(wolf_state, wolf_action, wolf_reward_per_epoch, wolf_next_state, done)
 
                 cow_state = cow_next_state
                 wolf_state = wolf_next_state
 
-                if done:
-                    break
                 if environment.quit():
                     return pd.DataFrame(data=all_rewards,
                                         columns=['epoch', 'cow_reward', 'wolf_reward',
                                                  'wolf_border_collision', 'cow_border_collision'], )
+                if done:
+                    break
 
-        all_rewards.append(
-            [epoch, cow_reword_per_epoch / episode_length, wolf_reword_per_epoch / episode_length,
-             cow_border_collision / episode_length, wolf_border_collision / episode_length])
-        for i in range(4):
-            cow_model.replay(batch_size)
-            wolf_model.replay(batch_size)
-        print('finish epoch {}, cow rewards {}, wolf rewards {}'.format(epoch, cow_reword_per_epoch,
-                                                                        wolf_reword_per_epoch))
+        all_rewards.append([epoch, cow_reward_per_epoch / episode_length,
+                            wolf_reward_per_epoch / episode_length,
+                            cow_border_collision / episode_length,
+                            wolf_border_collision / episode_length])
+
+        for i in range(8):
+            if epoch % 2 == 0:
+                cow_model.replay(batch_size)
+            else:
+                wolf_model.replay(batch_size)
+        print('finish epoch {}, cow rewards {}, wolf rewards {}'.format(epoch, cow_reward_per_epoch,
+                                                                        wolf_reward_per_epoch))
     return pd.DataFrame(data=all_rewards, columns=['epoch', 'cow_reward', 'wolf_rewards'], )
 
 
@@ -85,22 +94,16 @@ epoch_length = 1000
 ray_count = 20
 action_size = 7
 
-cow_model = DQNAgent(4 + ray_count * 3, action_size, preprocess=transform_state_1d)
-wolf_model = DQNAgent(4 + ray_count * 3, action_size, preprocess=transform_state_1d)
+cow_model = SimpleDQNAgent(3 + ray_count * 3, action_size, preprocess=transform_state_1d, memory_length=10_000)
+wolf_model = SimpleDQNAgent(3 + ray_count * 3, action_size, preprocess=transform_state_1d)
 
 environment = Environment(cow_ray_count=ray_count,
                           grass_count=1,
                           wolf_ray_count=ray_count,
                           draw=True)
 
-results = train_dqn_agents(cow_model, wolf_model, environment)
+results = train_dqn_agents(cow_model, wolf_model, environment, game_length=1000)
 print(results)
-sns.lineplot(results['epoch'], results['cow_reward'], color='brown', )
-sns.lineplot(results['epoch'], results['wolf_reward'], color='blue')
-plt.xlabel('epoch')
-plt.ylabel('reward')
-plt.savefig('result/dqn-result.png')
-plt.show()
 
 sns.lineplot(results['epoch'], results['cow_border_collision'], color='brown', )
 sns.lineplot(results['epoch'], results['wolf_border_collision'], color='blue')
@@ -108,3 +111,13 @@ plt.xlabel('epoch')
 plt.ylabel('border collision count')
 plt.savefig('result/dqn-border-collision-result.png')
 plt.show()
+
+sns.lineplot(results['epoch'], results['cow_reward'], color='brown', )
+sns.lineplot(results['epoch'], results['wolf_reward'], color='blue')
+plt.xlabel('epoch')
+plt.ylabel('reward')
+plt.savefig('result/dqn-reward.png')
+plt.show()
+
+cow_model.save('models/deepq-cow.HDF5')
+wolf_model.save('models/deepq-wolf.HDF5')

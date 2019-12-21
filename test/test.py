@@ -1,6 +1,6 @@
 import unittest
 from deepcow import *
-from deepcow.agent import Agent, Entity, State
+from deepcow.entity import Agent, Entity, State
 from deepcow.environment import *
 from pygame.math import Vector2
 import numpy as np

@@ -1,5 +1,5 @@
 from deepcow.constant import *
-from deepcow.agent import *
+from deepcow.entity import *
 from deepcow.actions import *
 from pygame.math import Vector2
 import os

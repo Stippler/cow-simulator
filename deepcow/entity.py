@@ -18,9 +18,10 @@ class State(object):
 
     def __init__(self, agent: 'Agent', perception: np.ndarray) -> None:
         super().__init__()
+        self.energy = agent.energy
         self.position = np.array(agent.position)
         self.direction = np.array(agent.direction)
-        self.velocity = np.array(agent.velocity) / agent.max_speed
+        self.velocity = np.array([agent.velocity.magnitude()])
         self.perception = perception
 
 
@@ -75,6 +76,7 @@ class Agent(Entity):
                  initial_energy=1.0,
                  mass=1.0,
                  elasticity=0.1,
+                 friction=0.9,
                  color=(0, 0, 0)):
         super(Agent, self).__init__(radius, initial_energy, color)
         self.field_of_view = field_of_view
@@ -88,6 +90,7 @@ class Agent(Entity):
         self.mass = mass
         self.elasticity = elasticity
         self.perceptions = []
+        self.friction = friction
         self.last_action = Action.NOTHING
 
     def reset(self):
@@ -161,13 +164,13 @@ class Agent(Entity):
         if action != Action.NOTHING:
             acceleration_delta = self.acceleration * delta
             if action == Action.MOVE_FORWARD:
-                self.velocity += Vector2(0.0, -1.0) * acceleration_delta
+                self.velocity += self.direction * acceleration_delta
             elif action == Action.MOVE_BACKWARD:
-                self.velocity += Vector2(0.0, 1.0) * acceleration_delta
+                self.velocity += -self.direction * acceleration_delta
             elif action == Action.MOVE_LEFT:
-                self.velocity += Vector2(-1.0, 0.0) * acceleration_delta
+                self.velocity += self.direction.rotate(90) * acceleration_delta
             elif action == Action.MOVE_RIGHT:
-                self.velocity += Vector2(1.0, 0.0) * acceleration_delta
+                self.velocity += self.direction.rotate(-90) * acceleration_delta
             elif action == Action.ROTATE_CLOCKWISE:
                 self.direction = self.direction.rotate(self.rotation_speed * delta)
             elif action == Action.ROTATE_COUNTER_CLOCK:
@@ -178,6 +181,7 @@ class Agent(Entity):
         if speed > self.max_speed:
             self.velocity *= self.max_speed / speed
         self.position += (self.velocity * delta)
+        self.velocity *= (1 - self.friction * delta)
 
     def calculate_agents_collisions(self, agents: ['Agent']) -> None:
         # collision with other agents
@@ -217,7 +221,7 @@ class Agent(Entity):
                 agent.velocity = agent.velocity + self_to_agent_vec * (
                         -2 * self.mass * (1 + agent.elasticity))
 
-    def calculate_border_collisions(self) -> True:
+    def calculate_border_collisions(self) -> bool:
         # collision with border
         pos = self.position
         vel = self.velocity
@@ -228,25 +232,23 @@ class Agent(Entity):
         down_distance = GAME_HEIGHT - (pos.y + r)
         border_collision = False
         if right_distance < 0:
-            self.reward -= 0.1
             pos.x += right_distance
             vel.x *= -1
             border_collision = True
         elif left_distance < 0:
-            self.reward -= 0.1
             pos.x -= left_distance
             vel.x *= -1
             border_collision = True
         if up_distance < 0:
-            self.reward -= 0.1
             pos.y -= up_distance
             vel.y *= -1
             border_collision = True
         elif down_distance < 0:
-            self.reward -= 0.1
             pos.y += down_distance
             vel.y *= -1
             border_collision = True
+        if border_collision:
+            self.reward -= 1
         return border_collision
 
     def __intersects_head(self, entity: Entity) -> None:

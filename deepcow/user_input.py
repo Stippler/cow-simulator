@@ -9,7 +9,6 @@ def get_user_input():
         # set action to forward if w is pressed and backward if s is pressed etc.
         if event.type == pygame.QUIT:
             running = False
-
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_w:
                 user_action = Action.MOVE_FORWARD
