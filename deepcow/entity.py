@@ -15,6 +15,7 @@ BLACK = (0, 0, 0)
 
 
 class State(object):
+    """ represents the state of a agent"""
 
     def __init__(self, agent: 'Agent', perception: np.ndarray) -> None:
         super().__init__()
@@ -39,12 +40,14 @@ class Entity(object):
         self.reward = 0
 
     def draw(self, screen):
+        """ draws the entity """
         x = int(self.position.x)
         y = int(self.position.y)
         radius = int(self.radius)
         pygame.draw.circle(screen, self.color, (x, y), radius)
 
     def reset(self):
+        """ randomizes the position (in the game borders) and resets reward and energy"""
         start_x = self.radius
         stop_x = GAME_WIDTH - self.radius
         start_y = self.radius
@@ -56,6 +59,7 @@ class Entity(object):
         self.energy = 1.0
 
     def draw_information(self, screen, index):
+        """ draws the agents information """
         text = self.font.render('Energy: {:.2f} Reward: {:.2f}'.format(self.energy, self.reward), True, self.color,
                                 WHITE)
         text_rect = text.get_rect()
@@ -94,6 +98,7 @@ class Agent(Entity):
         self.last_action = Action.NOTHING
 
     def reset(self):
+        """ additionally to entity reset: randomizes position and direction as well """
         super().reset()
         self.velocity = Vector2()
         self.direction = Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize()
@@ -102,6 +107,8 @@ class Agent(Entity):
         return self.position + self.direction * self.radius
 
     def perceive(self, entities: [Entity]) -> State:
+        """ calculates the ray intersections, stores the intersection
+        position and color and returns the current state"""
         stop_angle = self.field_of_view / 2
         start_angle = -stop_angle
         delta_angle = self.field_of_view / (self.ray_count - 1)
@@ -160,6 +167,7 @@ class Agent(Entity):
         return state
 
     def perform_action(self, delta: float, action: Action) -> None:
+        """ changes the acceleration/direction of the agent based on the passed action """
         self.last_action = action
         if action != Action.NOTHING:
             acceleration_delta = self.acceleration * delta
@@ -177,6 +185,7 @@ class Agent(Entity):
                 self.direction = self.direction.rotate(-self.rotation_speed * delta)
 
     def update_position(self, delta: float) -> None:
+        """ changes the position based on the velocity and applies friction """
         speed = self.velocity.magnitude()
         if speed > self.max_speed:
             self.velocity *= self.max_speed / speed
@@ -184,6 +193,8 @@ class Agent(Entity):
         self.velocity *= (1 - self.friction * delta)
 
     def calculate_agents_collisions(self, agents: ['Agent']) -> None:
+        """ collision detection and response, if agents collide their velocity is changed based on their elasticity and
+        their mass"""
         # collision with other agents
         for agent in agents:
             if self != agent:
@@ -222,6 +233,8 @@ class Agent(Entity):
                         -2 * self.mass * (1 + agent.elasticity))
 
     def calculate_border_collisions(self) -> bool:
+        """ collision detection and response for the game borders """
+
         # collision with border
         pos = self.position
         vel = self.velocity
@@ -256,6 +269,7 @@ class Agent(Entity):
         return head_position.distance_squared_to(entity.position) < total_radius * total_radius
 
     def calculate_reward(self, foods, delta):
+        """ calculates the reward of each agent and store the energy/reward """
         delta_reward = delta
         done = False
         for food in foods:
@@ -274,6 +288,7 @@ class Agent(Entity):
         return reward
 
     def draw_perception(self, screen: Surface) -> None:
+        """ draw the rays on the screen """
         head_position = self.get_head_position()
         for perception in self.perceptions:
             start_x = int(head_position.x)
@@ -292,6 +307,7 @@ class Agent(Entity):
         pygame.draw.circle(screen, (0, 0, 0), (x, y), radius)
 
     def draw_information(self, screen: Surface, index: int) -> Surface:
+        """draws the recent action, energy and reward of the agent on the top right corner of the window"""
         text = self.font.render(
             'Last Action: {} Energy: {:.2f} Reward: {:.2f}'.format(self.last_action, self.energy, self.reward), True,
             self.color,

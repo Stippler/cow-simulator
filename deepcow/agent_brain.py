@@ -11,34 +11,43 @@ import tensorflow.keras as keras
 
 class DQNAgent(ABC):
     def remember(self, state, action, reward, next_state, done):
+        """saves a transition from a state to its successor state for later training"""
         pass
 
     @abstractmethod
     def explore_select_action(self, state):
+        """returns an action that is either random or calculated by the neural network,
+         depending on the exploration rate"""
         pass
 
     @abstractmethod
     def select_action(self, state):
+        """calculates an action with the neural network"""
         pass
 
     @abstractmethod
-    def replay(self, batch_size):
+    def replay(self, batch_size) -> None:
+        """replays the transitions saved with remember and trains the neural network to approximate Q(s,a)"""
         pass
 
     @abstractmethod
     def load(self, path: str) -> None:
+        """loads the weights of a previously saved network"""
         pass
 
     @abstractmethod
     def save(self, path: str) -> None:
+        """saves the weights of the network"""
         pass
 
     @abstractmethod
     def get_exploration_rate(self):
+        """returns the probability that the next action is chosen randomly"""
         pass
 
 
 class SimpleDQNAgent(DQNAgent):
+    """ simple deep q network agent """
     def __init__(self, state_size, action_size, preprocess, memory_length=5000):
         self.state_size = state_size
         self.action_size = action_size
@@ -64,11 +73,9 @@ class SimpleDQNAgent(DQNAgent):
         return self.epsilon
 
     def remember(self, state, action, reward, next_state, done):
-        """add a tuple for learning"""
         self.memory.append((state, action, reward, next_state, done))
 
     def explore_select_action(self, state):
-        """returns an action given a state"""
         if np.random.rand() <= self.epsilon:
             return random.randrange(self.action_size)
         action_values = self.model.predict(self.preprocess(state))
@@ -79,7 +86,6 @@ class SimpleDQNAgent(DQNAgent):
         return np.argmax(action_values[0])
 
     def replay(self, batch_size):
-        """replays actions for training"""
         batch = random.sample(self.memory, batch_size)
         for state, action, reward, next_state, done in batch:
             target = reward
@@ -94,15 +100,15 @@ class SimpleDQNAgent(DQNAgent):
             self.epsilon *= self.epsilon_decay
 
     def load(self, path: str) -> None:
-        """load a previously made model"""
         self.model.load_weights(path)
 
     def save(self, path: str) -> None:
-        """save the model of this agent"""
         self.model.save_weights(path)
 
 
 class ExtendedDQNAgent(DQNAgent):
+    """ complex deep q network agent """
+
     def __init__(self,
                  perception_size,
                  metadata_size,

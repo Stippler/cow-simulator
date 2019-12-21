@@ -61,6 +61,7 @@ class Environment(object):
         self.reset()
 
     def reset(self) -> [State]:
+        """ randomizes and resets the entities"""
         for entity in self.entities:
             entity.reset()
         states, _, _, _ = self.step([Action.NOTHING for agent in self.agents])
@@ -102,6 +103,9 @@ class Environment(object):
         return [agent.perceive(self.entities) for agent in self.agents]
 
     def step(self, actions: [Action]) -> ([State], [float], bool, dict):
+        """ performs one step of the environment by updating the position, calculating collisions,
+         calculating rewards/energy loss and finally returning a tuple containing:
+         (the states of the actors, the rewards of the actors, if the environment was reset, additional information)"""
         self.__perform_actions(actions)
         wolf_border_collisions, cow_border_collisions = self.__update_agents_positions()
         states = self.__perceive()
@@ -135,6 +139,7 @@ class Environment(object):
         pygame.display.update()
 
     def quit(self):
+        """ checks if user pressed x """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
