@@ -1,4 +1,3 @@
-from datetime import datetime
 from deepcow.agent_brain import *
 from deepcow.environment import Environment
 from deepcow.entity import *
@@ -93,58 +92,7 @@ def train_dqn_agents(cow_model: DQNAgent,
     return pd.DataFrame(data=all_rewards, columns=['epoch', 'cow_reward', 'wolf_rewards'], )
 
 
-def train_cow(
-        cow_model: DQNAgent,
-        environment: Environment,
-        epoch_length=1000,
-        episode_length=10,
-        game_length=1000,
-        batch_size=32):
-    """ training loop for the deep q agents"""
-    all_rewards = []
-    for epoch in range(epoch_length):
-        print('starting epoch {}, cow exploration rate {:.2f}%'.format(
-            epoch,
-            cow_model.get_exploration_rate()))
 
-        cow_reward_per_epoch = 0
-        cow_border_collision = 0
-
-        for episode in range(episode_length):
-            states = environment.reset()
-            cow_state = states[0]
-
-            for frame in range(game_length):
-                cow_action = cow_model.explore_select_action(cow_state)
-
-                states, rewards, done, info = environment.step([Action(cow_action)])
-
-                cow_border_collision += info['cow_border_collisions']
-
-                cow_reward = rewards[0]
-                cow_reward_per_epoch += cow_reward
-                cow_next_state = states[0]
-
-                if frame == game_length - 1:
-                    done = True
-
-                cow_model.remember(cow_state, cow_action, cow_reward_per_epoch, cow_next_state, done)
-
-                cow_state = cow_next_state
-
-                if environment.quit():
-                    return pd.DataFrame(data=all_rewards,
-                                        columns=['epoch', 'cow_reward', 'wolf_reward',
-                                                 'wolf_border_collision', 'cow_border_collision'], )
-                if done:
-                    break
-
-        all_rewards.append([epoch, cow_reward_per_epoch / episode_length,
-                            cow_border_collision / episode_length])
-
-        cow_model.replay(batch_size)
-        print('finish epoch {}, cow rewards {}'.format(epoch, cow_reward_per_epoch))
-    return pd.DataFrame(data=all_rewards, columns=['epoch', 'cow_reward', 'wolf_rewards'], )
 
 
 epoch_length = 1000

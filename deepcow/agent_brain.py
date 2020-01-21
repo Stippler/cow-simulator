@@ -1,4 +1,3 @@
-import math
 from collections import deque, namedtuple
 from tensorflow.keras.layers import Dense, Conv1D, BatchNormalization, Input, Concatenate, Flatten, Softmax
 from tensorflow.keras.optimizers import Adam
@@ -138,9 +137,9 @@ class ExtendedDQNAgent(DQNAgent):
         """build complex model of DQN Agent"""
 
         metadata_input = Input(shape=(self.metadata_size,))
-        metadata_layer = Dense(4, activation='relu')(metadata_input)
-        metadata_layer = Dense(4, activation='relu')(metadata_layer)
-        metadata_layer = Dense(4, activation='relu')(metadata_layer)
+        metadata_layer = Dense(self.metadata_size, activation='relu')(metadata_input)
+        metadata_layer = Dense(self.metadata_size, activation='relu')(metadata_layer)
+        metadata_layer = Dense(self.metadata_size, activation='relu')(metadata_layer)
 
         perception_input = Input(shape=(self.perception_size, 1))
         perception_layer = Conv1D(self.perception_size * 2, kernel_size=3,
@@ -150,14 +149,10 @@ class ExtendedDQNAgent(DQNAgent):
         perception_layer = BatchNormalization()(perception_layer)
         perception_layer = Conv1D(1, kernel_size=3, activation='relu')(perception_layer)
         perception_layer = BatchNormalization()(perception_layer)
-        perception_layer = Conv1D(1, kernel_size=3, activation='relu')(perception_layer)
-        perception_layer = BatchNormalization()(perception_layer)
         perception_layer = Flatten()(perception_layer)
-        perception_layer = Dense(8, activation='linear')(perception_layer)
+        perception_layer = Dense(self.action_size, activation='linear')(perception_layer)
 
         merge_layer = Concatenate(axis=1)([metadata_layer, perception_layer])
-        merge_layer = Dense(16, activation='relu')(merge_layer)
-        merge_layer = Dense(16, activation='relu')(merge_layer)
         merge_layer = Dense(16, activation='relu')(merge_layer)
         merge_layer = Dense(self.action_size, activation='linear')(merge_layer)
 
@@ -177,7 +172,8 @@ class ExtendedDQNAgent(DQNAgent):
         return np.argmax(action_values[0])
 
     def select_action(self, state):
-        action_values = self.model.predict(self.preprocess(state))
+        processed_state = self.preprocess(state)
+        action_values = self.model.predict(processed_state)
         return np.argmax(action_values[0])
 
     def get_exploration_rate(self):

@@ -53,7 +53,7 @@ class Environment(object):
         self.agents = self.cows + self.wolves
 
         # initialize entities
-        self.grass = [Entity(color=(0, 255, 0), radius=16) for x in range(grass_count)]
+        self.grass = [Entity(color=(0, 255, 0)) for x in range(grass_count)]
         self.entities = self.agents + self.grass
 
         # gameloop

@@ -24,6 +24,7 @@ class State(object):
         self.direction = np.array(agent.direction)
         self.velocity = np.array([agent.velocity.magnitude()])
         self.perception = perception
+        self.food_distances = agent.food_distances
 
 
 class Entity(object):
@@ -96,6 +97,7 @@ class Agent(Entity):
         self.perceptions = []
         self.friction = friction
         self.last_action = Action.NOTHING
+        self.food_distances = []
 
     def reset(self):
         """ additionally to entity reset: randomizes position and direction as well """
@@ -262,24 +264,30 @@ class Agent(Entity):
             border_collision = True
         return border_collision
 
-    def __intersects_head(self, entity: Entity) -> None:
+    def __distance_to_entity(self, entity: Entity) -> (bool, float):
         head_position = self.get_head_position()
-        head_radius = self.radius / 2
-        total_radius = head_radius + entity.radius
-        return head_position.distance_squared_to(entity.position) < total_radius * total_radius
+        return head_position.distance_to(entity.position)
 
     def calculate_reward(self, foods, delta):
         """ calculates the reward of each agent and store the energy/reward """
         delta_reward = delta
         done = False
+
+        food_distances = []
         for food in foods:
-            if self.__intersects_head(food):
+            distance = self.__distance_to_entity(food)
+            food_distances.append(distance)
+
+            head_radius = self.radius / 2
+            total_radius = head_radius + food.radius
+            if distance < total_radius:
                 self.reward += delta_reward
                 self.energy += delta_reward
                 food.reward -= delta_reward
                 food.energy -= delta_reward
                 if food.energy <= 0:
                     done = True
+        self.food_distances = food_distances
         return done
 
     def get_reset_reward(self) -> float:
