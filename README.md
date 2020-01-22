@@ -1,5 +1,19 @@
 # Cow Simulator
 
+## usage
+
+In order to run the application install the dependencies and type:
+
+python3 deepcow/run.py play # to let the best 2 models trained by train_cow or train_wolf play against each other
+
+python3 deepcow/run.py train_cow # to train the cow
+
+python3 deepcow/run.py train_wolf # to train the wolf
+
+python3 deepcow/run.py train_both # to train both at the same time 
+
+in your terminal.
+
 ## References
 
 ### scientific papers
@@ -95,9 +109,9 @@ Start by installing the dependencies listed in .circleci/dependencies.txt and ru
 | research topic and first draft                             | 5h                   |  8h       |
 | building environment                                       | 10h                  |  14h      |
 | setting up cuda, cudnn... on manjaro                       | 20m                  |  21h      |
-| designing and building an appropriate network &nbsp;&nbsp; | 20h                  |  14h      |
-| fine-tuning that network                                   | 10h                  |  9h       |
-| building an application to present the results             | 5h                   |           |
-| writing the final report                                   | 10h                  |           |
-| preparing the presentation of the project                  | 5h                   |           |
+| designing and building an appropriate network &nbsp;&nbsp; | 20h                  |  25h      |
+| fine-tuning that network                                   | 10h                  |  12h      |
+| building an application to present the results             | 5h                   |  4h       |
+| writing the final report                                   | 10h                  |  3h       |
+| preparing the presentation of the project                  | 5h                   |  1h       |
 
