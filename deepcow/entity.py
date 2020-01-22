@@ -25,6 +25,7 @@ class State(object):
         self.velocity = np.array([agent.velocity.magnitude()])
         self.perception = perception
         self.food_distances = agent.food_distances
+        self.see_food = agent.see_food
 
 
 class Entity(object):
@@ -98,6 +99,7 @@ class Agent(Entity):
         self.friction = friction
         self.last_action = Action.NOTHING
         self.food_distances = []
+        self.see_food = []
 
     def reset(self):
         """ additionally to entity reset: randomizes position and direction as well """
@@ -175,12 +177,6 @@ class Agent(Entity):
             acceleration_delta = self.acceleration * delta
             if action == Action.MOVE_FORWARD:
                 self.velocity += self.direction * acceleration_delta
-            elif action == Action.MOVE_BACKWARD:
-                self.velocity += -self.direction * acceleration_delta
-            elif action == Action.MOVE_LEFT:
-                self.velocity += self.direction.rotate(90) * acceleration_delta
-            elif action == Action.MOVE_RIGHT:
-                self.velocity += self.direction.rotate(-90) * acceleration_delta
             elif action == Action.ROTATE_CLOCKWISE:
                 self.direction = self.direction.rotate(self.rotation_speed * delta)
             elif action == Action.ROTATE_COUNTER_CLOCK:
@@ -236,7 +232,6 @@ class Agent(Entity):
 
     def calculate_border_collisions(self) -> bool:
         """ collision detection and response for the game borders """
-
         # collision with border
         pos = self.position
         vel = self.velocity
@@ -266,7 +261,10 @@ class Agent(Entity):
 
     def __distance_to_entity(self, entity: Entity) -> (bool, float):
         head_position = self.get_head_position()
-        return head_position.distance_to(entity.position)
+        distance = head_position.distance_to(entity.position)
+        see_food = abs((entity.position - head_position).angle_to(
+            self.direction)) < self.field_of_view / 2 and distance <= self.ray_length
+        return see_food, distance
 
     def calculate_reward(self, foods, delta):
         """ calculates the reward of each agent and store the energy/reward """
@@ -274,10 +272,11 @@ class Agent(Entity):
         done = False
 
         food_distances = []
+        see_food = []
         for food in foods:
-            distance = self.__distance_to_entity(food)
+            see, distance = self.__distance_to_entity(food)
             food_distances.append(distance)
-
+            see_food.append(see)
             head_radius = self.radius / 2
             total_radius = head_radius + food.radius
             if distance < total_radius:
@@ -288,6 +287,7 @@ class Agent(Entity):
                 if food.energy <= 0:
                     done = True
         self.food_distances = food_distances
+        self.see_food = see_food
         return done
 
     def get_reset_reward(self) -> float:

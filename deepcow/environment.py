@@ -35,6 +35,10 @@ class Environment(object):
         # initialize pygame and set set surface parameters
         pygame.init()
         self.draw = draw
+        self.cow_ray_length = cow_ray_length
+        self.cow_ray_count = cow_ray_count
+        self.wolf_ray_length = wolf_ray_length
+        self.wolf_ray_count = wolf_ray_count
         if draw:
             self.screen = pygame.display.set_mode((game_width, game_height))
             pygame.display.set_caption('Cow Simulator')
@@ -90,7 +94,7 @@ class Environment(object):
     def __calculate_rewards(self, agents: [Agent], foods: [Entity]) -> (np.ndarray, bool):
         done = False
         for index, agent in enumerate(agents):
-            done = done or agent.calculate_reward(foods, self.delta_time)
+            done = done or agent.calculate_reward(foods, 2)
         return done
 
     def __get_reset_rewards(self, agents: [Agent]):
