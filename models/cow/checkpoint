@@ -1,0 +1,2 @@
+model_checkpoint_path: "extended-dqn-best-cow.HDF5"
+all_model_checkpoint_paths: "extended-dqn-best-cow.HDF5"
